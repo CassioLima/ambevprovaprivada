@@ -33,7 +33,7 @@
                 throw new InvalidOperationException("It's not possible to sell more than 20 identical items.");
 
             // SaleItem já aplica automaticamente o desconto conforme a quantidade
-            var item = new SaleItem(productId, description, quantity, unitPrice);
+            var item = new SaleItem(Id, productId, description, quantity, unitPrice);
             _items.Add(item);
         }
 

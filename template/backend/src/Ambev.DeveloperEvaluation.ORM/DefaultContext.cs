@@ -14,9 +14,6 @@ public class DefaultContext : DbContext
     public DbSet<Sale> Sales { get; set; }
     public DbSet<SaleItem> SaleItems { get; set; }
 
-
-
-
     public DefaultContext(DbContextOptions<DefaultContext> options) : base(options)
     {
     }
@@ -25,7 +22,7 @@ public class DefaultContext : DbContext
     {
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
-        // === SEED USERS ===
+        //=== SEED USERS ===
         //modelBuilder.Entity<User>().HasData(
         //    new User
         //    {
@@ -33,7 +30,7 @@ public class DefaultContext : DbContext
         //        Username = "admin",
         //        Email = "admin@ambev.com",
         //        Phone = "(11) 99999-9999",
-        //        Password = "Admin@123",  
+        //        Password = "Admin@123",
         //        Role = UserRole.Admin,
         //        Status = UserStatus.Active,
         //        CreatedAt = DateTime.UtcNow
@@ -54,8 +51,6 @@ public class DefaultContext : DbContext
         base.OnModelCreating(modelBuilder);
     }
 }
-
-
 public class YourDbContextFactory : IDesignTimeDbContextFactory<DefaultContext>
 {
     public DefaultContext CreateDbContext(string[] args)
