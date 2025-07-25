@@ -6,6 +6,7 @@ using Ambev.DeveloperEvaluation.Common.Validation;
 using Ambev.DeveloperEvaluation.IoC;
 using Ambev.DeveloperEvaluation.ORM;
 using Ambev.DeveloperEvaluation.WebApi.Middleware;
+using MassTransit;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -52,13 +53,29 @@ public class Program
 
             builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
+            builder.Services.AddMassTransit(x =>
+            {
+                 x.AddConsumer<SaleCreatedConsumer>();
+                x.AddConsumer<SaleModifiedConsumer>();
+                x.AddConsumer<SaleCancelledConsumer>();
+                x.AddConsumer<ItemCancelledConsumer>();
+
+                x.UsingRabbitMq((context, cfg) =>
+                {
+                    cfg.Host(builder.Configuration.GetConnectionString("RabbitMq"));
+                    cfg.ConfigureEndpoints(context); 
+                });
+            });
+
+            builder.Services.AddMassTransitHostedService();
+
             var app = builder.Build();
             app.UseMiddleware<ValidationExceptionMiddleware>();
 
             // if (app.Environment.IsDevelopment())
             // {
-                app.UseSwagger();
-                app.UseSwaggerUI();
+            app.UseSwagger();
+            app.UseSwaggerUI();
             // }
 
             app.UseHttpsRedirection();

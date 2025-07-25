@@ -1,6 +1,8 @@
 ﻿using Backend.Domain.Entities;
 using Backend.Domain.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using MassTransit;
+using Ambev.DeveloperEvaluation.WebApi.Messages;
 
 namespace Backend.WebApi.Controllers;
 
@@ -9,10 +11,12 @@ namespace Backend.WebApi.Controllers;
 public class SalesController : ControllerBase
 {
     private readonly ISaleRepository _repository;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public SalesController(ISaleRepository repository)
+    public SalesController(IPublishEndpoint publishEndpoint)
     {
-        _repository = repository;
+        _publishEndpoint = publishEndpoint;    
+        // _repository = repository; // Uncomment when repository is implemented
     }
 
     [HttpGet("{id:guid}")]
@@ -26,7 +30,14 @@ public class SalesController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] Sale sale)
     {
-        await _repository.AddAsync(sale);
+        //await _repository.AddAsync(sale);
+        await _publishEndpoint.Publish(new SaleCreated
+        {
+            SaleId = Guid.NewGuid(),
+            CreatedAt = DateTime.UtcNow,
+            CustomerId = sale.Customer,
+            TotalAmount = sale.TotalAmount
+        });
         return CreatedAtAction(nameof(GetById), new { id = sale.Id }, sale);
     }
 
@@ -37,6 +48,13 @@ public class SalesController : ControllerBase
         if (sale == null) return NotFound();
         sale.Cancel();
         await _repository.UpdateAsync(sale);
+        await _publishEndpoint.Publish(new SaleCancelled
+        {
+            SaleId = sale.Id,
+            CancelledAt = DateTime.UtcNow,
+            Reason = $"Venda {sale.SaleNumber} foi cancelada por ação de usuário."
+        });
+
         return NoContent();
     }
 
