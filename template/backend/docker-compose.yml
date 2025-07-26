@@ -55,3 +55,13 @@ services:
        MONGO_INITDB_ROOT_PASSWORD: ev@luAt10n
     ports:
        - "6379"
+
+  db-init:
+    image: postgres:13
+    depends_on:
+      ambev.developerevaluation.database:
+        condition: service_healthy
+    volumes:
+      - ./scripts/init.sql:/init.sql:ro
+    command: >
+      bash -c "PGPASSWORD=ev@luAt10n psql -h ambev.developerevaluation.database -U developer -d developer_evaluation -f /init.sql"

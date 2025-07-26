@@ -22,32 +22,6 @@ public class DefaultContext : DbContext
     {
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
-        //=== SEED USERS ===
-        //modelBuilder.Entity<User>().HasData(
-        //    new User
-        //    {
-        //        Id = Guid.NewGuid(),
-        //        Username = "admin",
-        //        Email = "admin@ambev.com",
-        //        Phone = "(11) 99999-9999",
-        //        Password = "Admin@123",
-        //        Role = UserRole.Admin,
-        //        Status = UserStatus.Active,
-        //        CreatedAt = DateTime.UtcNow
-        //    },
-        //    new User
-        //    {
-        //        Id = Guid.NewGuid(),
-        //        Username = "user1",
-        //        Email = "user1@ambev.com",
-        //        Phone = "(11) 98888-8888",
-        //        Password = "User@123",
-        //        Role = UserRole.Manager,
-        //        Status = UserStatus.Active,
-        //        CreatedAt = DateTime.UtcNow
-        //    }
-        //);
-
         base.OnModelCreating(modelBuilder);
     }
 }

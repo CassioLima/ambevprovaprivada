@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Ambev.DeveloperEvaluation.WebApi.Migrations
 {
     [DbContext(typeof(DefaultContext))]
-    [Migration("20250725211134_NovaMigration")]
+    [Migration("20250726020139_NovaMigration")]
     partial class NovaMigration
     {
         /// <inheritdoc />
