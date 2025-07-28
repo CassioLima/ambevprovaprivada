@@ -15,6 +15,7 @@ using Ambev.DeveloperEvaluation.Common.Logging;
 using MongoDB.Driver;
 using StackExchange.Redis;
 using Microsoft.Extensions.Caching.Distributed;
+using AutoMapper;
 
 namespace Ambev.DeveloperEvaluation.WebApi;
 
@@ -126,6 +127,10 @@ public class Program
                     return valor ?? "Valor não encontrado no Redis";
                 });
 
+
+                //Verifica se tem erro de Mapeamento
+                var mapper = app.Services.GetRequiredService<IMapper>();
+                mapper.ConfigurationProvider.AssertConfigurationIsValid();
             }
 
             app.UseHttpsRedirection();
