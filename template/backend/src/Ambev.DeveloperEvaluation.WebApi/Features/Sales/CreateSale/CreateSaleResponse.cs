@@ -11,10 +11,10 @@ public class CreateSaleResponse
     public string Customer { get; set; } = string.Empty;
     public string Branch { get; set; } = string.Empty;
     public decimal TotalAmount { get; set; }
-    public List<SaleItemResponse> Items { get; set; } = new();
+    public List<CreateSaleItemResponse> Items { get; set; } = new();
 }
 
-public class SaleItemResponse
+public class CreateSaleItemResponse
 {
     public Guid ProductId { get; set; }
     public string ProductDescription { get; set; } = string.Empty;
