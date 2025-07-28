@@ -1,22 +1,24 @@
-﻿namespace Backend.Domain.Entities
+﻿using System;
+
+namespace Backend.Domain.Entities
 {
     public class SaleItem
     {
-        public Guid Id { get; private set; } // Adicione uma chave primária se não tiver
-        public Guid SaleId { get; private set; }   // <- FK explícita
-        public Sale Sale { get; private set; }     // <- Navegação inversa
+        public Guid Id { get; private set; }
+        public Guid SaleId { get; private set; }
+        public Sale Sale { get; private set; }
 
         public Guid ProductId { get; private set; }
-        public string ProductDescription { get; private set; }
+        public string ProductName { get; private set; }
         public int Quantity { get; private set; }
         public decimal UnitPrice { get; private set; }
         public decimal DiscountPercentage { get; private set; }
         public decimal Total => (UnitPrice * Quantity) - DiscountAmount;
         public decimal DiscountAmount => (UnitPrice * Quantity) * (DiscountPercentage / 100);
 
-        protected SaleItem() { }
+        private SaleItem() { }
 
-        public SaleItem(Guid saleId, Guid productId, string description, int quantity, decimal unitPrice)
+        public SaleItem(Guid saleId, Guid productId, string productName, int quantity, decimal unitPrice)
         {
             if (quantity <= 0)
                 throw new ArgumentException("Quantity must be greater than 0");
@@ -24,9 +26,10 @@
             if (quantity > 20)
                 throw new InvalidOperationException("It's not possible to sell more than 20 identical items.");
 
+            Id = Guid.NewGuid();
             SaleId = saleId;
             ProductId = productId;
-            ProductDescription = description;
+            ProductName = productName;
             Quantity = quantity;
             UnitPrice = unitPrice;
 

@@ -20,6 +20,7 @@ public class GetSaleCommandHandler : IRequestHandler<GetSaleCommand, GetSaleComm
     {
         var sale = await _context.Sales
             .Include(s => s.Items)
+            .Include(s => s.Customer)
             .FirstOrDefaultAsync(s => s.Id == request.Id, cancellationToken);
 
         if (sale == null)

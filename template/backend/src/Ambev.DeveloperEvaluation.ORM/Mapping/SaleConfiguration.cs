@@ -16,28 +16,28 @@ namespace Ambev.DeveloperEvaluation.ORM.Mapping
                    .IsRequired()
                    .HasMaxLength(50);
 
-            builder.Property(s => s.Customer)
-                   .IsRequired()
-                   .HasMaxLength(100);
-
             builder.Property(s => s.Branch)
                    .IsRequired()
                    .HasMaxLength(100);
 
-            builder.Property(s => s.IsCancelled)
-                   .IsRequired();
+            builder.Property(s => s.PaymentMethod)
+                   .HasMaxLength(50);
 
-            builder.Ignore(s => s.TotalAmount); // É calculado, não persiste
+            builder.Property(s => s.Status)
+                   .IsRequired()
+                   .HasMaxLength(20);
 
-            // Configura relação com SaleItem
+            builder.Ignore(s => s.TotalAmount);
+
+            builder.HasOne(s => s.Customer)
+                   .WithMany(c => c.Sales)
+                   .HasForeignKey(s => s.CustomerId)
+                   .OnDelete(DeleteBehavior.Restrict);
+
             builder.HasMany(s => s.Items)
                    .WithOne(i => i.Sale)
                    .HasForeignKey(i => i.SaleId)
                    .OnDelete(DeleteBehavior.Cascade);
-
-            // Ignora o campo privado para não mapear duas vezes
-            builder.Metadata.FindNavigation(nameof(Sale.Items))!
-                            .SetPropertyAccessMode(PropertyAccessMode.Field);
         }
     }
 }

@@ -19,11 +19,25 @@ public class CreateSaleCommandHandler : IRequestHandler<CreateSaleCommand, Creat
 
     public async Task<CreateSaleCommandResult> Handle(CreateSaleCommand request, CancellationToken cancellationToken)
     {
-        var sale = new Sale(request.SaleNumber, request.SaleDate, request.Customer, request.Branch);
+        var sale = new Sale(request.SaleNumber, request.SaleDate, request.CustomerId, request.Branch, request.PaymentMethod);
+
 
         foreach (var item in request.Items)
         {
-            sale.AddItem(item.ProductId, item.ProductDescription, item.Quantity, item.UnitPrice);
+            // Busca o produto
+            var product = await _context.Products.FindAsync(new object[] { item.ProductId }, cancellationToken);
+            if (product == null)
+                throw new InvalidOperationException($"Produto {item.ProductId} não encontrado.");
+
+            // Verifica estoque antes de adicionar item
+            if (item.Quantity > product.StockQuantity)
+                throw new InvalidOperationException($"Estoque insuficiente para o produto {product.Name}.");
+
+            // Adiciona item com dados oficiais do produto
+            sale.AddItem(product.Id, product.Name, item.Quantity, product.Price);
+
+            // Atualiza estoque (gera movimentação automática)
+            product.DecreaseStock(item.Quantity);
         }
 
         _context.Sales.Add(sale);
