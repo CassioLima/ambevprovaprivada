@@ -7,7 +7,7 @@ public class SaleMappingProfile : Profile
     public SaleMappingProfile()
     {
         // Map de SaleItemResultDto -> SaleItemResponse
-        CreateMap<SaleItemResultDto, SaleItemResponse>();
+        CreateMap<SaleItemResultDto, GetSaleItemResponse>();
 
         // Map de GetSaleCommandResult -> GetSaleResponse
         CreateMap<GetSaleCommandResult, GetSaleResponse>();
