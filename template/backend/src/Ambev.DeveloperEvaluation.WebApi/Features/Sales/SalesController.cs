@@ -24,30 +24,40 @@ public class SalesController : BaseController
         _mapper = mapper;
     }
 
-    ///// <summary>
-    ///// Creates a new sale
-    ///// </summary>
-    //[HttpPost]
-    //[ProducesResponseType(typeof(ApiResponseWithData<CreateSaleResponse>), StatusCodes.Status201Created)]
-    //[ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-    //public async Task<IActionResult> CreateSale([FromBody] CreateSaleRequest request, CancellationToken cancellationToken)
-    //{
-    //    var validator = new CreateSaleRequestValidator();
-    //    var validationResult = await validator.ValidateAsync(request, cancellationToken);
+    /// <summary>
+    /// Creates a new sale
+    /// </summary>
+    [HttpPost]
+    [ProducesResponseType(typeof(ApiResponseWithData<CreateSaleResponse>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> CreateSale([FromBody] CreateSaleRequest request, CancellationToken cancellationToken)
+    {
 
-    //    if (!validationResult.IsValid)
-    //        return BadRequest(validationResult.Errors);
 
-    //    var command = _mapper.Map<CreateSaleCommand>(request);
-    //    var response = await _mediator.Send(command, cancellationToken);
+        return Ok(new
+        {
+            Success = true,
+            Message = "Sale created successfully (mock)",
+            Data = request
+        });
 
-    //    return Created(string.Empty, new ApiResponseWithData<CreateSaleResponse>
-    //    {
-    //        Success = true,
-    //        Message = "Sale created successfully",
-    //        Data = _mapper.Map<CreateSaleResponse>(response)
-    //    });
-    //}
+
+        //var validator = new CreateSaleRequestValidator();
+        //var validationResult = await validator.ValidateAsync(request, cancellationToken);
+
+        //if (!validationResult.IsValid)
+        //    return BadRequest(validationResult.Errors);
+
+        //var command = _mapper.Map<CreateSaleCommand>(request);
+        //var response = await _mediator.Send(command, cancellationToken);
+
+        //return Created(string.Empty, new ApiResponseWithData<CreateSaleResponse>
+        //{
+        //    Success = true,
+        //    Message = "Sale created successfully",
+        //    Data = _mapper.Map<CreateSaleResponse>(response)
+        //});
+    }
 
     /// <summary>
     /// Retrieves a sale by ID
