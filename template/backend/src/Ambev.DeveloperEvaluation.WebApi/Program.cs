@@ -24,68 +24,9 @@ public class Program
         {
             var builder = WebApplication.CreateBuilder(args);
 
-
-
-            //builder.Host.UseSerilog((context, services, configuration) =>
-            //{
-            //    var mongoUrl = new MongoUrl("mongodb://developer:evaluAt10n@ambev_developer_evaluation_nosql:27017/logs");
-
-            //    configuration
-            //        .ReadFrom.Configuration(context.Configuration)
-            //        .ReadFrom.Services(services)
-            //        .Enrich.FromLogContext()
-            //        .WriteTo.Console()
-            //        .WriteTo.MongoDB(
-            //            databaseUrl: mongoUrl.ToString(),
-            //            collectionName: "application_logs"
-            //        );
-            //});
-
-
-
-            Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Debug()
-            .Enrich.FromLogContext()
-            .WriteTo.Console()
-            .WriteTo.MongoDBBson("mongodb://developer:evaluAt10n@ambev.developerevaluation.nosql:27017/logs?authSource=admin", collectionName: "application_logs")
-            .CreateLogger();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            //builder.AddDefaultLogging();
-            // 🔹 Remove qualquer log padrão e usa apenas Serilog
-            //builder.Host.UseSerilog((context, services, configuration) =>
-            //{
-            //    configuration
-            //        .ReadFrom.Configuration(context.Configuration)
-            //        .ReadFrom.Services(services)
-            //        .Enrich.FromLogContext()
-            //        .WriteTo.Console()
-            //        .WriteTo.MongoDBBson(
-            //            new MongoUrl(context.Configuration.GetConnectionString("MongoDbLogs")).ToString(),
-            //            collectionName: "application_logs"
-            //        );
-            //});
-
-            //logger.Information("🔥 Teste de log no MongoDB iniciado com sucesso!");
-
+            builder.AddDefaultLogging();
 
             Log.Information("Starting web application");
-            Log.Error("=== TESTE LOG MONGO ===");
-
-
 
             builder.Services.AddControllers();
 

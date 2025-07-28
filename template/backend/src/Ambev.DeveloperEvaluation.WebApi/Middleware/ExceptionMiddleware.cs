@@ -31,7 +31,7 @@ public class ExceptionMiddleware
             context.Response.StatusCode = 500;
             context.Response.ContentType = "application/json";
 
-            message = _env.IsDevelopment() ? ex.ToString() : "Erro interno no servidor.";
+            var message = _env.IsDevelopment() ? ex.ToString() : "Erro interno no servidor.";
             var response = new
             {
                 status = 500,

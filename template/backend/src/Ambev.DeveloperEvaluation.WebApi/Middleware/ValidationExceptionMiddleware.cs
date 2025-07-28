@@ -66,7 +66,6 @@ namespace Ambev.DeveloperEvaluation.WebApi.Middleware
             };
 
             //Logar o erro de validação
-            //Serilog.Log.Error(exception, "Validation error occurred");
             Log.Error(exception, "Unhandled exception captured by middleware");
 
             return context.Response.WriteAsync(JsonSerializer.Serialize(response, new JsonSerializerOptions

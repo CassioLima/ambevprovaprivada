@@ -8,6 +8,8 @@ using Serilog.Exceptions.Core;
 using Serilog.Exceptions.EntityFrameworkCore.Destructurers;
 using Serilog.Exceptions;
 using MongoDB.Driver;
+using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
 namespace Ambev.DeveloperEvaluation.Common.Logging;
 
@@ -19,47 +21,34 @@ public static class LoggingExtension
 
     private static readonly Func<LogEvent, bool> _filterPredicate = logEvent =>
     {
-        if (logEvent.Level != LogEventLevel.Information)
-            return true;
+        if (logEvent.Level == LogEventLevel.Information 
+            && logEvent.Properties.TryGetValue("StatusCode", out var statusCode) 
+                && statusCode.ToString() == "200" 
+                    && logEvent.Properties.TryGetValue("Path", out var path) 
+                        &&  path.ToString().Contains("/health"))
+        {
+            return true; 
+        }
 
-        logEvent.Properties.TryGetValue("StatusCode", out var statusCode);
-        logEvent.Properties.TryGetValue("Path", out var path);
-
-        if ((statusCode?.ToString() == "200") && (path?.ToString().Contains("/health") ?? false))
-            return false;
-
-        return true;
+        return false; // <-- será incluído
     };
 
     public static WebApplicationBuilder AddDefaultLogging(this WebApplicationBuilder builder)
     {
 
-        builder.Host.UseSerilog((context, config) =>
-        {
-            var mongoUrl = new MongoUrl(context.Configuration.GetConnectionString("MongoDbLogs"));
+        Log.Logger = new LoggerConfiguration()
+        .MinimumLevel.Debug()
+        .Enrich.FromLogContext()
+        .Filter.ByExcluding(_filterPredicate)
+        .WriteTo.Console()
+        .WriteTo.MongoDBBson(builder.Configuration.GetConnectionString("MongoDbLogs").ToString() ?? "", collectionName: "application_logs")
+        .CreateLogger();
 
-            config
-                .ReadFrom.Configuration(context.Configuration)
-                .Enrich.WithMachineName()
-                .Enrich.WithProperty("Environment", builder.Environment.EnvironmentName)
-                .Enrich.WithProperty("Application", builder.Environment.ApplicationName)
-                .Enrich.FromLogContext()
-                .Enrich.WithExceptionDetails(_destructuringOptionsBuilder)
-                .WriteTo.Debug()
-                .WriteTo.Console(
-                    outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}",
-                    theme: SystemConsoleTheme.Colored)
-                .WriteTo.File(
-                    "logs/log-.txt",
-                    rollingInterval: RollingInterval.Day,
-                    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {SourceContext} {Message:lj}{NewLine}{Exception}")
-                .WriteTo.MongoDBBson(mongoUrl.ToString(), collectionName: "application_logs");
-        });
-
-        builder.Services.AddLogging();
         return builder;
     }
 
+
+    //TODO: Analisar
     //public static WebApplication UseDefaultLogging(this WebApplication app)
     //{
     //    var logger = app.Services.GetRequiredService<ILogger<Logger>>();
