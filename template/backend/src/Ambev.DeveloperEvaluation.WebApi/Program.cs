@@ -110,14 +110,6 @@ public class Program
                 app.UseSwagger();
                 app.UseSwaggerUI();
 
-                //TODO:Analisar
-                //// Executa migrations automaticamente ao subir
-                //using (var scope = app.Services.CreateScope())
-                //{
-                //    var dbContext = scope.ServiceProvider.GetRequiredService<DefaultContext>();
-                //    dbContext.Database.Migrate();
-                //}
-
                 app.MapGet("/cache-test", async (IDistributedCache cache) =>
                 {
                     await cache.SetStringAsync("key1", "🔥 Redis funcionando!",
@@ -127,10 +119,6 @@ public class Program
                     return valor ?? "Valor não encontrado no Redis";
                 });
 
-
-                //Verifica se tem erro de Mapeamento
-                var mapper = app.Services.GetRequiredService<IMapper>();
-                mapper.ConfigurationProvider.AssertConfigurationIsValid();
             }
 
             app.UseHttpsRedirection();
