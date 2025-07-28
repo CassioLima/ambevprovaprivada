@@ -1,6 +1,8 @@
 ﻿using Ambev.DeveloperEvaluation.Common.Validation;
 using Ambev.DeveloperEvaluation.WebApi.Common;
 using FluentValidation;
+using Serilog;
+using System.Net;
 using System.Text.Json;
 
 namespace Ambev.DeveloperEvaluation.WebApi.Middleware
@@ -24,6 +26,10 @@ namespace Ambev.DeveloperEvaluation.WebApi.Middleware
             {
                 await HandleValidationExceptionAsync(context, ex);
             }
+            catch (Exception ex)
+            {
+                await HandleGenericExceptionAsync(context, ex);
+            }
         }
 
         private static Task HandleValidationExceptionAsync(HttpContext context, ValidationException exception)
@@ -35,16 +41,38 @@ namespace Ambev.DeveloperEvaluation.WebApi.Middleware
             {
                 Success = false,
                 Message = "Validation Failed",
-                Errors = exception.Errors
-                    .Select(error => (ValidationErrorDetail)error)
+                Errors = exception.Errors.Select(error => (ValidationErrorDetail)error)
             };
 
-            var jsonOptions = new JsonSerializerOptions
+            //Logar o erro de validação
+            Serilog.Log.Error(exception, "Validation error occurred");
+
+            return context.Response.WriteAsync(JsonSerializer.Serialize(response, new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            }));
+        }
+
+        private static Task HandleGenericExceptionAsync(HttpContext context, Exception exception)
+        {
+            context.Response.ContentType = "application/json";
+            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+
+            var response = new ApiResponse
+            {
+                Success = false,
+                Message = "An unexpected error occurred",
+                Errors = new[] { new ValidationErrorDetail { Error = "ServerError", Detail = exception.Message } }
             };
 
-            return context.Response.WriteAsync(JsonSerializer.Serialize(response, jsonOptions));
+            //Logar o erro de validação
+            //Serilog.Log.Error(exception, "Validation error occurred");
+            Log.Error(exception, "Unhandled exception captured by middleware");
+
+            return context.Response.WriteAsync(JsonSerializer.Serialize(response, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            }));
         }
     }
 }

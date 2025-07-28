@@ -1,6 +1,5 @@
 ﻿using Ambev.DeveloperEvaluation.Application;
 using Ambev.DeveloperEvaluation.Common.HealthChecks;
-using Ambev.DeveloperEvaluation.Common.Logging;
 using Ambev.DeveloperEvaluation.Common.Security;
 using Ambev.DeveloperEvaluation.Common.Validation;
 using Ambev.DeveloperEvaluation.IoC;
@@ -9,9 +8,11 @@ using Ambev.DeveloperEvaluation.WebApi.Middleware;
 using MassTransit;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Serilog;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using Ambev.DeveloperEvaluation.Common.Logging;
+using MongoDB.Driver;
 
 namespace Ambev.DeveloperEvaluation.WebApi;
 
@@ -21,18 +22,84 @@ public class Program
     {
         try
         {
-            
-            Log.Information("Starting web application");
+            var builder = WebApplication.CreateBuilder(args);
 
-            WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
-            builder.AddDefaultLogging();
+
+
+            //builder.Host.UseSerilog((context, services, configuration) =>
+            //{
+            //    var mongoUrl = new MongoUrl("mongodb://developer:evaluAt10n@ambev_developer_evaluation_nosql:27017/logs");
+
+            //    configuration
+            //        .ReadFrom.Configuration(context.Configuration)
+            //        .ReadFrom.Services(services)
+            //        .Enrich.FromLogContext()
+            //        .WriteTo.Console()
+            //        .WriteTo.MongoDB(
+            //            databaseUrl: mongoUrl.ToString(),
+            //            collectionName: "application_logs"
+            //        );
+            //});
+
+
+
+            Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .Enrich.FromLogContext()
+            .WriteTo.Console()
+            .WriteTo.MongoDBBson("mongodb://developer:evaluAt10n@ambev.developerevaluation.nosql:27017/logs?authSource=admin", collectionName: "application_logs")
+            .CreateLogger();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            //builder.AddDefaultLogging();
+            // 🔹 Remove qualquer log padrão e usa apenas Serilog
+            //builder.Host.UseSerilog((context, services, configuration) =>
+            //{
+            //    configuration
+            //        .ReadFrom.Configuration(context.Configuration)
+            //        .ReadFrom.Services(services)
+            //        .Enrich.FromLogContext()
+            //        .WriteTo.Console()
+            //        .WriteTo.MongoDBBson(
+            //            new MongoUrl(context.Configuration.GetConnectionString("MongoDbLogs")).ToString(),
+            //            collectionName: "application_logs"
+            //        );
+            //});
+
+            //logger.Information("🔥 Teste de log no MongoDB iniciado com sucesso!");
+
+
+            Log.Information("Starting web application");
+            Log.Error("=== TESTE LOG MONGO ===");
+
+
 
             builder.Services.AddControllers();
-            builder.Services.AddEndpointsApiExplorer();
 
+            // FluentValidation
+            builder.Services.AddFluentValidationAutoValidation();
+            builder.Services.AddFluentValidationClientsideAdapters();
+            builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+
+            //HealthChecks
+            builder.Services.AddEndpointsApiExplorer();
             builder.AddBasicHealthChecks();
             builder.Services.AddSwaggerGen();
 
+            //Conf do Postgree
             builder.Services.AddDbContext<DefaultContext>(options =>
                 options.UseNpgsql(
                     builder.Configuration.GetConnectionString("DefaultConnection"),
@@ -41,11 +108,12 @@ public class Program
             );
 
             builder.Services.AddJwtAuthentication(builder.Configuration);
-
             builder.RegisterDependencies();
 
+            //AutoMapper
             builder.Services.AddAutoMapper(typeof(Program).Assembly, typeof(ApplicationLayer).Assembly);
 
+            //MediatR
             builder.Services.AddMediatR(cfg =>
             {
                 cfg.RegisterServicesFromAssemblies(
@@ -54,8 +122,8 @@ public class Program
                 );
             });
 
+            //MassTransit
             builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
-
             builder.Services.AddMassTransit(x =>
             {
                 x.AddConsumer<SaleCreatedConsumer>();
@@ -70,11 +138,9 @@ public class Program
                 });
             });
 
-            builder.Services.AddMassTransitHostedService();
-
             var app = builder.Build();
 
-
+            // Middleware de validação customizada
             app.UseMiddleware<ValidationExceptionMiddleware>();
 
             if (app.Environment.IsDevelopment())
@@ -82,22 +148,18 @@ public class Program
                 app.UseSwagger();
                 app.UseSwaggerUI();
 
-                //Executa as migrations automaticamente ao subir a aplicação
-                using (var scope = app.Services.CreateScope())
-                {
-                    var dbContext = scope.ServiceProvider.GetRequiredService<DefaultContext>();
-                    dbContext.Database.Migrate();
-                }
-
+                //// Executa migrations automaticamente ao subir
+                //using (var scope = app.Services.CreateScope())
+                //{
+                //    var dbContext = scope.ServiceProvider.GetRequiredService<DefaultContext>();
+                //    dbContext.Database.Migrate();
+                //}
             }
 
             app.UseHttpsRedirection();
-
             app.UseAuthentication();
             app.UseAuthorization();
-
             app.UseBasicHealthChecks();
-
             app.MapControllers();
 
             app.Run();

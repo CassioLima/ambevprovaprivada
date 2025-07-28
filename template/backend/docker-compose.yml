@@ -13,12 +13,14 @@ services:
       - ASPNETCORE_HTTPS_PORTS=8081
     ports:
       - "8080"
-      - "8081"
+      - "62796:8081"
     volumes:
       - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
       - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
     depends_on:
       ambev.developerevaluation.database:
+        condition: service_healthy
+      ambev.developerevaluation.nosql:
         condition: service_healthy
 
   ambev.developerevaluation.database:
@@ -42,9 +44,14 @@ services:
     image: mongo:8.0    
     environment:
         MONGO_INITDB_ROOT_USERNAME: developer
-        MONGO_INITDB_ROOT_PASSWORD: ev@luAt10n
+        MONGO_INITDB_ROOT_PASSWORD: evaluAt10n
     ports:
-      - "27017"
+      - "51759:27017"
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --eval 'db.runCommand({ ping: 1 })' --quiet || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   ambev.developerevaluation.cache:
     container_name: ambev_developer_evaluation_cache 

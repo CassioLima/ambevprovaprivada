@@ -58,11 +58,11 @@ public class SalesController : BaseController
     public async Task<IActionResult> GetSale([FromRoute] Guid id, CancellationToken cancellationToken)
     {
         var request = new GetSaleRequest { Id = id };
-        var validator = new GetSaleRequestValidator();
-        var validationResult = await validator.ValidateAsync(request, cancellationToken);
+        //var validator = new GetSaleRequestValidator();
+        //var validationResult = await validator.ValidateAsync(request, cancellationToken);
 
-        if (!validationResult.IsValid)
-            return BadRequest(validationResult.Errors);
+        //if (!validationResult.IsValid)
+        //    return BadRequest(validationResult.Errors);
 
         var command = _mapper.Map<GetSaleCommand>(request.Id);
         var response = await _mediator.Send(command, cancellationToken);
