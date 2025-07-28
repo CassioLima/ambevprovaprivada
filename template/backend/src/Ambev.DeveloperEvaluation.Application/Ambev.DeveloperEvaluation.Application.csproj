@@ -14,6 +14,8 @@
     <PackageReference Include="AutoMapper" Version="13.0.1" />    
     <PackageReference Include="MediatR" Version="12.4.1" />
     <PackageReference Include="OneOf" Version="3.0.271" />
+    <PackageReference Include="StackExchange.Redis" Version="2.8.58" />
+    <PackageReference Include="MassTransit" Version="8.5.1" />
   </ItemGroup>
 
 </Project>

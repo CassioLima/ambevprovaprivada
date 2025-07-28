@@ -1,8 +1,8 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using Ambev.DeveloperEvaluation.WebApi.Messages;
+using Ambev.DeveloperEvaluation.Domain.Events;
 
-public class SaleCancelledConsumer : IConsumer<SaleCancelled>
+public class SaleCancelledConsumer : IConsumer<SaleCancelledEvent>
 {
     private readonly ILogger<SaleCancelledConsumer> _logger;
 
@@ -11,7 +11,7 @@ public class SaleCancelledConsumer : IConsumer<SaleCancelled>
         _logger = logger;
     }
 
-    public Task Consume(ConsumeContext<SaleCancelled> context)
+    public Task Consume(ConsumeContext<SaleCancelledEvent> context)
     {
         _logger.LogInformation("SaleCancelled recebido: SaleId={SaleId}, Reason={Reason}",
             context.Message.SaleId, context.Message.Reason);

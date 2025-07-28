@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Ambev.DeveloperEvaluation.WebApi.Messages
+namespace Ambev.DeveloperEvaluation.Domain.Events
 {
-    public class SaleModified
+    public class SaleModifiedEvent
     {
         public Guid SaleId { get; init; }
         public DateTime ModifiedAt { get; init; }

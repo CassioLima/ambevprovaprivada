@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Ambev.DeveloperEvaluation.WebApi.Messages
+namespace Ambev.DeveloperEvaluation.Domain.Events
 {
-    public class SaleCreated
+    public class SaleCreatedEvent
     {
         public Guid SaleId { get; init; }
         public DateTime CreatedAt { get; init; }
-        public string CustomerId { get; init; } = string.Empty;
+        public Guid CustomerId { get; init; }
         public decimal TotalAmount { get; init; }
     }
 }

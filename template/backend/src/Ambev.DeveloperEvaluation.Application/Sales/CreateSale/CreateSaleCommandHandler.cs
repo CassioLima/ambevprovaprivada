@@ -3,6 +3,8 @@ using MediatR;
 using Backend.Domain.Entities;
 using Ambev.DeveloperEvaluation.ORM;
 using Microsoft.EntityFrameworkCore;
+using MassTransit;
+using Ambev.DeveloperEvaluation.Domain.Events;
 
 namespace Ambev.DeveloperEvaluation.Application.Sales.CreateSale;
 
@@ -10,11 +12,13 @@ public class CreateSaleCommandHandler : IRequestHandler<CreateSaleCommand, Creat
 {
     private readonly DefaultContext _context;
     private readonly IMapper _mapper;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public CreateSaleCommandHandler(DefaultContext context, IMapper mapper)
+    public CreateSaleCommandHandler(DefaultContext context, IMapper mapper, IPublishEndpoint publishEndpoint)
     {
         _context = context;
         _mapper = mapper;
+        _publishEndpoint = publishEndpoint;
     }
 
     public async Task<CreateSaleCommandResult> Handle(CreateSaleCommand request, CancellationToken cancellationToken)
@@ -42,6 +46,16 @@ public class CreateSaleCommandHandler : IRequestHandler<CreateSaleCommand, Creat
 
         _context.Sales.Add(sale);
         await _context.SaveChangesAsync(cancellationToken);
+        
+        var saleEvent = new SaleCreatedEvent
+        {
+            SaleId = sale.Id,
+            CreatedAt = sale.SaleDate,
+            CustomerId = sale.CustomerId,
+            TotalAmount = sale.TotalAmount
+        };
+
+        await _publishEndpoint.Publish<SaleCreatedEvent>(saleEvent);    
 
         return _mapper.Map<CreateSaleCommandResult>(sale);
     }
