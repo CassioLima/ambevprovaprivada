@@ -13,6 +13,8 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using Ambev.DeveloperEvaluation.Common.Logging;
 using MongoDB.Driver;
+using StackExchange.Redis;
+using Microsoft.Extensions.Caching.Distributed;
 
 namespace Ambev.DeveloperEvaluation.WebApi;
 
@@ -79,7 +81,25 @@ public class Program
                 });
             });
 
+
+            
+            //Redis
+            builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+            {
+                var configuration = ConfigurationOptions.Parse(builder.Configuration.GetConnectionString("Redis")??"");
+                configuration.AbortOnConnectFail = false;
+                return ConnectionMultiplexer.Connect(configuration);
+            });
+
+            builder.Services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = builder.Configuration.GetConnectionString("Redis");
+                options.InstanceName = "MyApp:";
+            });
+
+
             var app = builder.Build();
+
 
             // Middleware de validação customizada
             app.UseMiddleware<ValidationExceptionMiddleware>();
@@ -89,12 +109,23 @@ public class Program
                 app.UseSwagger();
                 app.UseSwaggerUI();
 
+                //TODO:Analisar
                 //// Executa migrations automaticamente ao subir
                 //using (var scope = app.Services.CreateScope())
                 //{
                 //    var dbContext = scope.ServiceProvider.GetRequiredService<DefaultContext>();
                 //    dbContext.Database.Migrate();
                 //}
+
+                app.MapGet("/cache-test", async (IDistributedCache cache) =>
+                {
+                    await cache.SetStringAsync("key1", "🔥 Redis funcionando!",
+                        new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5) });
+
+                    var valor = await cache.GetStringAsync("key1");
+                    return valor ?? "Valor não encontrado no Redis";
+                });
+
             }
 
             app.UseHttpsRedirection();
