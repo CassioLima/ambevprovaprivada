@@ -11,6 +11,8 @@ namespace Ambev.DeveloperEvaluation.ORM.Mapping
             builder.ToTable("Sales");
 
             builder.HasKey(s => s.Id);
+            builder.Property(s => s.Id)
+                    .ValueGeneratedNever();
 
             builder.Property(s => s.SaleNumber)
                    .IsRequired()

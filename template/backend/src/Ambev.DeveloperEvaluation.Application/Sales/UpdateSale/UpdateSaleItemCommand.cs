@@ -3,17 +3,17 @@ using System;
 
 namespace Ambev.DeveloperEvaluation.Application.Sales.DeleteSale;
 
-public class DeleteSaleCommand : IRequest
+public class UpdateSaleItemCommand : IRequest
 {
     public Guid Id { get; private set; }
     public Guid ItemId { get; private set; }
 
-    public DeleteSaleCommand(Guid id)
+    public UpdateSaleItemCommand(Guid id)
     {
         Id = id;
     }
 
-    public DeleteSaleCommand(Guid id, Guid itemId)
+    public UpdateSaleItemCommand(Guid id, Guid itemId)
     {
         Id = id;
         ItemId = itemId;    

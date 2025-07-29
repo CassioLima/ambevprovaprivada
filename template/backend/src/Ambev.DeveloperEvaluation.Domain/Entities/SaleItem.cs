@@ -37,6 +37,18 @@ namespace Backend.Domain.Entities
             ApplyDiscount();
         }
 
+        public SaleItem(Guid id, Guid saleId, Guid productId, string productName, int quantity, decimal unitPrice, decimal discountPercentage)
+        {
+            Id = id;
+            SaleId = saleId;
+            ProductId = productId;
+            ProductName = productName;
+            Quantity = quantity;
+            UnitPrice = unitPrice;
+            DiscountPercentage = discountPercentage;
+
+        }
+
         private void ApplyDiscount()
         {
             if (Quantity < 4)

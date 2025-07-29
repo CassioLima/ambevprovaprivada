@@ -42,20 +42,18 @@ public class CreateSaleCommandHandler : IRequestHandler<CreateSaleCommand, Creat
 
             sale.AddItem(product.Id, product.Name, item.Quantity, product.Price, item.DiscountPercentage);
 
-            product.DecreaseStock(item.Quantity);
+            //product.DecreaseStock(item.Quantity);
         }
 
         await _saleRepository.CreateAsync(sale, cancellationToken);
 
-        var saleEvent = new SaleCreatedEvent
+         await _publishEndpoint.Publish<SaleCreatedEvent>(new SaleCreatedEvent
         {
             SaleId = sale.Id,
             CreatedAt = sale.SaleDate,
             CustomerId = sale.CustomerId,
             TotalAmount = sale.TotalAmount
-        };
-
-        await _publishEndpoint.Publish<SaleCreatedEvent>(saleEvent);    
+        });    
 
         return _mapper.Map<CreateSaleCommandResult>(sale);
     }

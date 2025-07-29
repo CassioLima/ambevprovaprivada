@@ -31,6 +31,7 @@ public class DefaultContext : DbContext
         base.OnModelCreating(modelBuilder);
     }
 }
+
 public class YourDbContextFactory : IDesignTimeDbContextFactory<DefaultContext>
 {
     public DefaultContext CreateDbContext(string[] args)

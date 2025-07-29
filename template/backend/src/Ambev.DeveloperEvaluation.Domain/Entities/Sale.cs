@@ -52,6 +52,28 @@ namespace Backend.Domain.Entities
             RecalculateTotal();
         }
 
+        public void RemoveItem(Guid itemId, Guid productId, string productName, int quantity, decimal unitPrice, decimal discountPercentage)
+        {
+            if (Status == "Cancelled")
+                throw new InvalidOperationException("Cannot add items to a cancelled sale.");
+
+            var item = new SaleItem(itemId, Id, productId, productName, quantity, unitPrice, discountPercentage);
+            _items.Remove(item);
+
+            RecalculateTotal();
+        }
+
+        public void UpdateItem(Guid itemId, Guid productId, string productName, int quantity, decimal unitPrice, decimal discountPercentage)
+        {
+            if (Status == "Cancelled")
+                throw new InvalidOperationException("Cannot add items to a cancelled sale.");
+
+            var item = new SaleItem(itemId, Id, productId, productName, quantity, unitPrice, discountPercentage);
+            _items.Remove(item);
+
+            RecalculateTotal();
+        }
+
         public void Cancel()
         {
             if (Status == "Cancelled")
