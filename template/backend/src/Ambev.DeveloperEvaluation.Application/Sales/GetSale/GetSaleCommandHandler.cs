@@ -1,31 +1,28 @@
 ﻿using AutoMapper;
 using MediatR;
-using Ambev.DeveloperEvaluation.ORM;
-using Microsoft.EntityFrameworkCore;
+using Ambev.DeveloperEvaluation.Domain.Repositories;
 
-namespace Ambev.DeveloperEvaluation.Application.Sales.GetSale;
-
-public class GetSaleCommandHandler : IRequestHandler<GetSaleCommand, GetSaleCommandResult>
+namespace Ambev.DeveloperEvaluation.Application.Sales.GetSale
 {
-    private readonly DefaultContext _context;
-    private readonly IMapper _mapper;
-
-    public GetSaleCommandHandler(DefaultContext context, IMapper mapper)
+    public class GetSaleCommandHandler : IRequestHandler<GetSaleCommand, GetSaleCommandResult>
     {
-        _context = context;
-        _mapper = mapper;
-    }
+        private readonly ISaleRepository _saleRepository;
+        private readonly IMapper _mapper;
 
-    public async Task<GetSaleCommandResult> Handle(GetSaleCommand request, CancellationToken cancellationToken)
-    {
-        var sale = await _context.Sales
-            .Include(s => s.Items)
-            .Include(s => s.Customer)
-            .FirstOrDefaultAsync(s => s.Id == request.Id, cancellationToken);
+        public GetSaleCommandHandler(ISaleRepository saleRepository, IMapper mapper)
+        {
+            _saleRepository = saleRepository;
+            _mapper = mapper;
+        }
 
-        if (sale == null)
-            throw new KeyNotFoundException("Sale not found");
+        public async Task<GetSaleCommandResult> Handle(GetSaleCommand request, CancellationToken cancellationToken)
+        {
+            var sale = await _saleRepository.GetByIdAsync(request.Id, cancellationToken);
 
-        return _mapper.Map<GetSaleCommandResult>(sale);
+            if (sale == null)
+                throw new KeyNotFoundException($"Sale with ID {request.Id} not found");
+
+            return _mapper.Map<GetSaleCommandResult>(sale);
+        }
     }
 }

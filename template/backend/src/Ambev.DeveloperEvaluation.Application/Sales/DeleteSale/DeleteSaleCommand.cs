@@ -1,21 +1,5 @@
 ﻿using MediatR;
-using System;
 
 namespace Ambev.DeveloperEvaluation.Application.Sales.DeleteSale;
 
-public class DeleteSaleCommand : IRequest
-{
-    public Guid Id { get; private set; }
-    public Guid ItemId { get; private set; }
-
-    public DeleteSaleCommand(Guid id)
-    {
-        Id = id;
-    }
-
-    public DeleteSaleCommand(Guid id, Guid itemId)
-    {
-        Id = id;
-        ItemId = itemId;    
-    }
-}
+public record DeleteSaleCommand(Guid ItemId) : IRequest<DeleteSaleCommandResult>;

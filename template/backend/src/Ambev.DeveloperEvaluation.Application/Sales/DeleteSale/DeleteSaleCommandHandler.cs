@@ -1,42 +1,58 @@
 ﻿using MediatR;
-using Ambev.DeveloperEvaluation.ORM;
-using Microsoft.EntityFrameworkCore;
-using Ambev.DeveloperEvaluation.Domain.Repositories;
-using AutoMapper;
 using MassTransit;
+using Ambev.DeveloperEvaluation.Domain.Repositories;
+using Ambev.DeveloperEvaluation.Application.Sales.CreateSale;
 
 namespace Ambev.DeveloperEvaluation.Application.Sales.DeleteSale;
 
-public class DeleteSaleCommandHandler : IRequestHandler<DeleteSaleCommand>
+public class DeleteSaleCommandHandler : IRequestHandler<DeleteSaleCommand, DeleteSaleCommandResult>
 {
-    private readonly ISaleRepository _saleRepository;
     private readonly ISaleItemRepository _saleItemRepository;
-    private readonly IMapper _mapper;
     private readonly IPublishEndpoint _publishEndpoint;
 
-    public DeleteSaleCommandHandler(IMapper mapper, IPublishEndpoint publishEndpoint, ISaleRepository saleRepository, ISaleItemRepository saleItemRepository)
+    public DeleteSaleCommandHandler(
+        ISaleItemRepository saleItemRepository,
+        IPublishEndpoint publishEndpoint)
     {
-        _mapper = mapper;
-        _publishEndpoint = publishEndpoint;
-        _saleRepository = saleRepository;
         _saleItemRepository = saleItemRepository;
+        _publishEndpoint = publishEndpoint;
     }
 
-
-    public async Task<Unit> Handle(DeleteSaleCommand request, CancellationToken cancellationToken)
+    public async Task<DeleteSaleCommandResult> Handle(DeleteSaleCommand request, CancellationToken cancellationToken)
     {
         var saleItem = await _saleItemRepository.GetByIdAsync(request.ItemId, cancellationToken);
 
         if (saleItem == null)
-            throw new KeyNotFoundException("Item Sale not found");
+        {
+            return new DeleteSaleCommandResult
+            {
+                Success = false,
+                Message = $"Item {request.ItemId} not found."
+            };
+        }
 
-        await _saleItemRepository.DeleteAsync(request.ItemId, cancellationToken);
+        var deleted = await _saleItemRepository.DeleteAsync(request.ItemId, cancellationToken);
 
-        return Unit.Value;
-    }
+        if (!deleted)
+        {
+            return new DeleteSaleCommandResult
+            {
+                Success = false,
+                Message = "Failed to delete item."
+            };
+        }
 
-    Task IRequestHandler<DeleteSaleCommand>.Handle(DeleteSaleCommand request, CancellationToken cancellationToken)
-    {
-        return Handle(request, cancellationToken);
+        await _publishEndpoint.Publish(new SaleItemDeletedEvent
+        {
+            ItemId = request.ItemId,
+            DeletedAt = DateTime.UtcNow
+        }, cancellationToken);
+
+        return new DeleteSaleCommandResult
+        {
+            Success = true,
+            Message = "Item deleted successfully."
+        };
     }
 }
+

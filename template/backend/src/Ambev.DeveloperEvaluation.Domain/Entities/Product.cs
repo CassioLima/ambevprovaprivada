@@ -38,7 +38,6 @@ namespace Backend.Domain.Entities
         {
             ValidateStock(quantity);
             StockQuantity -= quantity;
-            //_stockMovements.Add(new StockControl(Id, quantity, "Saída"));
         }
 
         public void ValidateStock(int quantity)

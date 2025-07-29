@@ -10,23 +10,24 @@ namespace Ambev.DeveloperEvaluation.Application.Sales.CreateSale;
 
 public class CreateSaleCommandHandler : IRequestHandler<CreateSaleCommand, CreateSaleCommandResult>
 {
-    private readonly DefaultContext _context;
     private readonly IMapper _mapper;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly ISaleRepository _saleRepository;
+    private readonly IProductRepository _productRepository;
+    private readonly ICustomerRepository _customerRepository;
 
-
-    public CreateSaleCommandHandler(DefaultContext context, IMapper mapper, IPublishEndpoint publishEndpoint, ISaleRepository saleRepository)
+    public CreateSaleCommandHandler(IMapper mapper, IPublishEndpoint publishEndpoint, ISaleRepository saleRepository, IProductRepository productRepository, ICustomerRepository customerRepository)
     {
-        _context = context;
         _mapper = mapper;
         _publishEndpoint = publishEndpoint;
         _saleRepository = saleRepository;
+        _productRepository = productRepository;
+        _customerRepository = customerRepository;
     }
 
     public async Task<CreateSaleCommandResult> Handle(CreateSaleCommand request, CancellationToken cancellationToken)
     {
-        var customer = await _context.Customers.FindAsync(new object[] { request.CustomerId }, cancellationToken);
+        var customer = await _customerRepository.GetByIdAsync(request.CustomerId , cancellationToken);
         if (customer == null)
             throw new InvalidOperationException($"Customer {request.CustomerId} not found.");
 
@@ -34,7 +35,7 @@ public class CreateSaleCommandHandler : IRequestHandler<CreateSaleCommand, Creat
 
         foreach (var item in request.Items)
         {
-            var product = await _context.Products.FindAsync(new object[] { item.ProductId }, cancellationToken);
+            var product = await _productRepository.GetByIdAsync( item.ProductId , cancellationToken);
             if (product == null)
                 throw new InvalidOperationException($"Produto {item.ProductId} not found.");
 

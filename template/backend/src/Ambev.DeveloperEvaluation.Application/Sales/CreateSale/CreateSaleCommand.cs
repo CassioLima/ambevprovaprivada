@@ -20,3 +20,16 @@ public class SaleItemDto
     public int Quantity { get; set; }
     public decimal DiscountPercentage { get; set; }
 }
+
+public class CreateSaleItem
+{
+    public Guid ProductId { get; set; }
+    public int Quantity { get; set; }
+    public decimal DiscountPercentage { get; set; }
+}
+
+public class SaleItemDeletedEvent
+{
+    public Guid ItemId { get; set; }
+    public DateTime DeletedAt { get; set; }
+}
