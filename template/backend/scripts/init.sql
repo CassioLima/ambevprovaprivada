@@ -5,7 +5,7 @@
 -- Users
 CREATE TABLE IF NOT EXISTS public."Users"
 (
-    "Id" uuid NOT NULL DEFAULT gen_random_uuid(),
+    "Id" uuid NOT NULL, -- sem DEFAULT gen_random_uuid()
     "Username" character varying(50) NOT NULL,
     "Email" character varying(100) NOT NULL,
     "Phone" character varying(20) NOT NULL,
@@ -23,7 +23,7 @@ ALTER TABLE IF EXISTS public."Users" OWNER to developer;
 -- Customers
 CREATE TABLE IF NOT EXISTS public."Customers"
 (
-    "Id" uuid NOT NULL DEFAULT gen_random_uuid(),
+    "Id" uuid NOT NULL, -- sem DEFAULT
     "Name" character varying(100) NOT NULL,
     "Email" character varying(100) NOT NULL,
     "Phone" character varying(20),
@@ -39,7 +39,7 @@ ALTER TABLE IF EXISTS public."Customers" OWNER TO developer;
 -- Products
 CREATE TABLE IF NOT EXISTS public."Products"
 (
-    "Id" uuid NOT NULL DEFAULT gen_random_uuid(),
+    "Id" uuid NOT NULL, -- sem DEFAULT
     "Name" character varying(100) NOT NULL,
     "Description" character varying(200),
     "Price" numeric(18,2) NOT NULL,
@@ -54,7 +54,7 @@ ALTER TABLE IF EXISTS public."Products" OWNER TO developer;
 -- StockControl
 CREATE TABLE IF NOT EXISTS public."StockControl"
 (
-    "Id" uuid NOT NULL DEFAULT gen_random_uuid(),
+    "Id" uuid NOT NULL, -- sem DEFAULT
     "ProductId" uuid NOT NULL,
     "MovementType" character varying(10) NOT NULL, -- 'Entrada' ou 'Saída'
     "Quantity" integer NOT NULL,
@@ -70,7 +70,7 @@ ALTER TABLE IF EXISTS public."StockControl" OWNER TO developer;
 -- Sales
 CREATE TABLE IF NOT EXISTS public."Sales"
 (
-    "Id" uuid NOT NULL DEFAULT gen_random_uuid(),
+    "Id" uuid NOT NULL, -- sem DEFAULT
     "SaleNumber" character varying(50) NOT NULL,
     "SaleDate" timestamp with time zone NOT NULL DEFAULT now(),
     "CustomerId" uuid NOT NULL,
@@ -89,7 +89,7 @@ ALTER TABLE IF EXISTS public."Sales" OWNER TO developer;
 -- SaleItems
 CREATE TABLE IF NOT EXISTS public."SaleItems"
 (
-    "Id" uuid NOT NULL DEFAULT gen_random_uuid(),
+    "Id" uuid NOT NULL, -- sem DEFAULT
     "SaleId" uuid NOT NULL,
     "ProductId" uuid NOT NULL,
     "ProductName" character varying(200) NOT NULL,
@@ -107,6 +107,7 @@ ALTER TABLE IF EXISTS public."SaleItems" OWNER TO developer;
 
 CREATE INDEX IF NOT EXISTS "IX_SaleItems_SaleId"
     ON public."SaleItems" USING btree ("SaleId");
+
 
 
 -- ========================================================

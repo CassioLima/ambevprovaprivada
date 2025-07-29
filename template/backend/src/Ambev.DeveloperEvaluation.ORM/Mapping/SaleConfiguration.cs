@@ -27,7 +27,9 @@ namespace Ambev.DeveloperEvaluation.ORM.Mapping
                    .IsRequired()
                    .HasMaxLength(20);
 
-            builder.Ignore(s => s.TotalAmount);
+            builder.Property(s => s.TotalAmount)
+           .HasColumnType("numeric(18,2)")
+           .IsRequired();
 
             builder.HasOne(s => s.Customer)
                    .WithMany(c => c.Sales)

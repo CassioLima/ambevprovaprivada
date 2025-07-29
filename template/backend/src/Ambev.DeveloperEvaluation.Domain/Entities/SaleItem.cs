@@ -18,7 +18,7 @@ namespace Backend.Domain.Entities
 
         private SaleItem() { }
 
-        public SaleItem(Guid saleId, Guid productId, string productName, int quantity, decimal unitPrice)
+        public SaleItem(Guid saleId, Guid productId, string productName, int quantity, decimal unitPrice, decimal discountPercentage)
         {
             if (quantity <= 0)
                 throw new ArgumentException("Quantity must be greater than 0");
@@ -32,6 +32,7 @@ namespace Backend.Domain.Entities
             ProductName = productName;
             Quantity = quantity;
             UnitPrice = unitPrice;
+            DiscountPercentage = discountPercentage;
 
             ApplyDiscount();
         }

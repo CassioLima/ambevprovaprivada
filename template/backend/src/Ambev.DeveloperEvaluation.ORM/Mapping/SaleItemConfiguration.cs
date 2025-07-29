@@ -12,6 +12,10 @@ namespace Ambev.DeveloperEvaluation.ORM.Mapping
 
             builder.HasKey(i => i.Id);
 
+            builder.Property(i => i.SaleId)
+                   .IsRequired()
+                   .HasColumnType("uuid");
+
             builder.Property(i => i.ProductId)
                    .IsRequired()
                    .HasColumnType("uuid");
@@ -35,8 +39,7 @@ namespace Ambev.DeveloperEvaluation.ORM.Mapping
 
             builder.HasOne(i => i.Sale)
                    .WithMany(s => s.Items)
-                   .HasForeignKey(i => i.SaleId)
-                   .OnDelete(DeleteBehavior.Cascade);
+                   .HasForeignKey(i => i.SaleId);
         }
     }
 }

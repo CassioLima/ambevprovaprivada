@@ -1,11 +1,12 @@
-﻿using Backend.Domain.Entities;
+﻿using Ambev.DeveloperEvaluation.Domain.Entities;
+using Backend.Domain.Entities;
 
-namespace Backend.Domain.Repositories;
+namespace Ambev.DeveloperEvaluation.Domain.Repositories;
 
 public interface ISaleRepository
 {
-    Task<Sale?> GetByIdAsync(Guid id);
-    Task AddAsync(Sale sale);
-    Task UpdateAsync(Sale sale);
-    Task DeleteAsync(Guid id);
+    Task<Sale?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<Sale> CreateAsync(Sale sale, CancellationToken cancellationToken = default);
+    Task UpdateAsync(Sale sale, CancellationToken cancellationToken = default);
+    Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
 }

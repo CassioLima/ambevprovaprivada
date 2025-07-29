@@ -15,25 +15,27 @@ namespace Backend.Domain.Entities
         public string Branch { get; private set; }
         public string PaymentMethod { get; private set; }
         public string Status { get; private set; }   // Pending, Paid, Cancelled
-        public decimal TotalAmount => _items.Sum(i => i.Total);
+        public decimal TotalAmount { get; private set; }
 
         private readonly List<SaleItem> _items = new();
         public IReadOnlyCollection<SaleItem> Items => _items.AsReadOnly();
 
         private Sale() { }
 
-        public Sale(string saleNumber, DateTime saleDate, Guid customerId, string branch, string paymentMethod)
+        public Sale(string saleNumber, DateTime saleDate, Customer customer, string branch, string paymentMethod)
         {
             Id = Guid.NewGuid();
             SaleNumber = saleNumber ?? throw new ArgumentNullException(nameof(saleNumber));
             SaleDate = saleDate;
-            CustomerId = customerId;
+            CustomerId = customer.Id;
+            Customer = customer;
             Branch = branch ?? throw new ArgumentNullException(nameof(branch));
             PaymentMethod = paymentMethod ?? "Uninformed";
             Status = "Pending";
+            TotalAmount = 0;
         }
 
-        public void AddItem(Guid productId, string productName, int quantity, decimal unitPrice)
+        public void AddItem(Guid productId, string productName, int quantity, decimal unitPrice, decimal discountPercentage)
         {
             if (Status == "Cancelled")
                 throw new InvalidOperationException("Cannot add items to a cancelled sale.");
@@ -44,8 +46,10 @@ namespace Backend.Domain.Entities
             if (quantity > 20)
                 throw new InvalidOperationException("It's not possible to sell more than 20 identical items.");
 
-            var item = new SaleItem(Id, productId, productName, quantity, unitPrice);
+            var item = new SaleItem(Id, productId, productName, quantity, unitPrice, discountPercentage);
             _items.Add(item);
+
+            RecalculateTotal();
         }
 
         public void Cancel()
@@ -65,6 +69,13 @@ namespace Backend.Domain.Entities
                 throw new InvalidOperationException("Cannot complete a cancelled sale.");
 
             Status = "Paid";
+        }
+
+        private void RecalculateTotal()
+        {
+            TotalAmount = _items.Sum(i =>
+                (i.Quantity * i.UnitPrice) - (i.Quantity * i.UnitPrice * i.DiscountPercentage / 100)
+            );
         }
     }
 }
