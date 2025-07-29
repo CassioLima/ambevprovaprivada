@@ -12,8 +12,7 @@ namespace Ambev.DeveloperEvaluation.ORM.Mapping
 
             builder.HasKey(u => u.Id);
             builder.Property(u => u.Id)
-                   .HasColumnType("uuid")
-                   .HasDefaultValueSql("gen_random_uuid()");
+                   .HasColumnType("uuid");
 
             builder.Property(u => u.Username)
                    .IsRequired()

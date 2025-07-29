@@ -30,7 +30,7 @@ public static class LoggingExtension
             return true; 
         }
 
-        return false; // <-- será incluído
+        return false; 
     };
 
     public static WebApplicationBuilder AddDefaultLogging(this WebApplicationBuilder builder)
@@ -47,14 +47,4 @@ public static class LoggingExtension
         return builder;
     }
 
-
-    //TODO: Analisar
-    //public static WebApplication UseDefaultLogging(this WebApplication app)
-    //{
-    //    var logger = app.Services.GetRequiredService<ILogger<Logger>>();
-    //    var mode = Debugger.IsAttached ? "Debug" : "Release";
-    //    logger.LogInformation("Logging enabled for '{Application}' on '{Environment}' - Mode: {Mode}",
-    //        app.Environment.ApplicationName, app.Environment.EnvironmentName, mode);
-    //    return app;
-    //}
 }

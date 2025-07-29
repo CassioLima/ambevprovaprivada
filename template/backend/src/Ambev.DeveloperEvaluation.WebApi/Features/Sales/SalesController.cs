@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using AutoMapper;
 using Ambev.DeveloperEvaluation.WebApi.Common;
 using Ambev.DeveloperEvaluation.WebApi.Features.Sales.CreateSale;
@@ -8,7 +9,6 @@ using Ambev.DeveloperEvaluation.WebApi.Features.Sales.DeleteSale;
 using Ambev.DeveloperEvaluation.Application.Sales.CreateSale;
 using Ambev.DeveloperEvaluation.Application.Sales.GetSale;
 using Ambev.DeveloperEvaluation.Application.Sales.DeleteSale;
-using Microsoft.EntityFrameworkCore;
 using Ambev.DeveloperEvaluation.WebApi.Features.Sales.UpdateSale;
 
 namespace Ambev.DeveloperEvaluation.WebApi.Features.Sales;
@@ -30,6 +30,7 @@ public class SalesController : BaseController
     /// Creates a new sale
     /// </summary>
     [HttpPost]
+    [Authorize]
     [ProducesResponseType(typeof(ApiResponseWithData<CreateSaleResponse>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateSale([FromBody] CreateSaleRequest request, CancellationToken cancellationToken)
@@ -49,6 +50,7 @@ public class SalesController : BaseController
     /// Retrieves a sale by ID
     /// </summary>
     [HttpGet("{id}")]
+    [Authorize]
     [ProducesResponseType(typeof(ApiResponseWithData<GetSaleResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetSale([FromRoute] Guid id, CancellationToken cancellationToken)
@@ -68,6 +70,7 @@ public class SalesController : BaseController
     /// Cancel Sale by ID
     /// </summary>
     [HttpDelete("{id}")]
+    [Authorize]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> CancelSale([FromRoute] Guid id, CancellationToken cancellationToken)
@@ -82,11 +85,11 @@ public class SalesController : BaseController
         });
     }
 
-
     /// <summary>
     /// Altera os dados de um item específico da venda
     /// </summary>
     [HttpPut("{saleId}/items/{itemId}")]
+    [Authorize] 
     public async Task<IActionResult> UpdateSaleItem(Guid saleId, Guid itemId, [FromBody] UpdateSaleItemRequest request, CancellationToken cancellationToken)
     {
         var command = _mapper.Map<UpdateSaleItemRequest>(request);
@@ -100,11 +103,11 @@ public class SalesController : BaseController
         });
     }
 
-
     /// <summary>
     /// Remove um item específico de uma venda
     /// </summary>
     [HttpDelete("{saleId}/items/{itemId}")]
+    [Authorize]
     public async Task<IActionResult> DeleteSaleItem(Guid saleId, Guid itemId, CancellationToken cancellationToken)
     {
         var command = _mapper.Map<DeleteSaleCommand>(new DeleteSaleRequest { Id = saleId, ItemId = itemId });
@@ -116,6 +119,4 @@ public class SalesController : BaseController
             Message = "Item of Sale deleted successfully"
         });
     }
-
-
 }
