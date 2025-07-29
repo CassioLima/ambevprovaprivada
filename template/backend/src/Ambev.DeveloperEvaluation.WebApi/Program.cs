@@ -48,7 +48,7 @@ public class Program
                 options.UseNpgsql(
                     builder.Configuration.GetConnectionString("DefaultConnection"),
                     b => b.MigrationsAssembly("Ambev.DeveloperEvaluation.ORM")
-                )
+                ).LogTo(Console.WriteLine, LogLevel.Information)
             );
 
             builder.Services.AddJwtAuthentication(builder.Configuration);

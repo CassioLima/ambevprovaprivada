@@ -36,10 +36,15 @@ namespace Backend.Domain.Entities
 
         public void DecreaseStock(int quantity)
         {
-            if (quantity <= 0) throw new ArgumentException("Quantity must be greater than 0");
-            if (quantity > StockQuantity) throw new InvalidOperationException("Not enough stock");
+            ValidateStock(quantity);
             StockQuantity -= quantity;
             _stockMovements.Add(new StockControl(Id, quantity, "Saída"));
         }
+
+        public void ValidateStock(int quantity)
+        {
+            if (quantity < 0) throw new ArgumentException("Quantity cannot be negative");
+            if (quantity > StockQuantity) throw new InvalidOperationException("Insufficient stock");
+        }       
     }
 }
