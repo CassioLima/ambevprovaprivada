@@ -4,43 +4,38 @@ using Ambev.DeveloperEvaluation.Domain.Repositories;
 public class SaleCreatedConsumer : IConsumer<SaleCreatedEvent>
 {
     private readonly ILogger<SaleCreatedConsumer> _logger;
-    private readonly ISaleRepository _saleRepository;
-    private readonly IProductRepository _productRepository;
+    private readonly IServiceProvider _serviceProvider;
 
-    public SaleCreatedConsumer(ILogger<SaleCreatedConsumer> logger, IProductRepository productRepository, ISaleRepository saleRepository)
+    public SaleCreatedConsumer(ILogger<SaleCreatedConsumer> logger, IServiceProvider serviceProvider)
     {
         _logger = logger;
-        _productRepository = productRepository;
-        _saleRepository = saleRepository;
+        _serviceProvider = serviceProvider;
     }
 
-    public Task Consume(ConsumeContext<SaleCreatedEvent> context)
+    public async Task Consume(ConsumeContext<SaleCreatedEvent> context)
     {
         _logger.LogInformation("SaleCreated recebido: SaleId={SaleId}, Total={TotalAmount}",
             context.Message.SaleId, context.Message.TotalAmount);
 
-        _saleRepository.GetByIdAsync(context.Message.SaleId)
-        .ContinueWith(saleTask =>
+        using var scope = _serviceProvider.CreateScope();
+        var saleRepository = scope.ServiceProvider.GetRequiredService<ISaleRepository>();
+        var productRepository = scope.ServiceProvider.GetRequiredService<IProductRepository>();
+
+        var sale = await saleRepository.GetByIdAsync(context.Message.SaleId, context.CancellationToken);
+        if (sale == null)
         {
-            if (saleTask.Result == null)
-            {
-                _logger.LogWarning("Sale not found for SaleId={SaleId}", context.Message.SaleId);
-                return;
-            }
+            _logger.LogWarning("Sale not found for SaleId={SaleId}", context.Message.SaleId);
+            return;
+        }
 
-            // Process the sale, e.g., update stock, notify other services, etc.
-            foreach (var item in saleTask.Result.Items)
+        foreach (var item in sale.Items)
+        {
+            var product = await productRepository.GetByIdAsync(item.ProductId, context.CancellationToken);
+            if (product != null)
             {
-                var product = _productRepository.GetByIdAsync(item.ProductId).Result;
-                if (product != null)
-                {
-                    product.DecreaseStock(item.Quantity);
-                    _productRepository.UpdateAsync(product);
-                }
+                product.DecreaseStock(item.Quantity);
+                await productRepository.UpdateAsync(product, context.CancellationToken);
             }
-        });
-        
-
-        return Task.CompletedTask;
+        }
     }
 }

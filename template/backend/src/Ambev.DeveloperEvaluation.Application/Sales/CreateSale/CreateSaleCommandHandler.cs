@@ -15,6 +15,7 @@ public class CreateSaleCommandHandler : IRequestHandler<CreateSaleCommand, Creat
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly ISaleRepository _saleRepository;
 
+
     public CreateSaleCommandHandler(DefaultContext context, IMapper mapper, IPublishEndpoint publishEndpoint, ISaleRepository saleRepository)
     {
         _context = context;
@@ -37,23 +38,21 @@ public class CreateSaleCommandHandler : IRequestHandler<CreateSaleCommand, Creat
             if (product == null)
                 throw new InvalidOperationException($"Produto {item.ProductId} not found.");
 
-            if (item.Quantity > product.StockQuantity)
-                throw new InvalidOperationException($"Insufficient stock for the product {product.Name}.");
+            product.ValidateStock(item.Quantity);
 
             sale.AddItem(product.Id, product.Name, item.Quantity, product.Price, item.DiscountPercentage);
 
-            //product.DecreaseStock(item.Quantity);
         }
 
         await _saleRepository.CreateAsync(sale, cancellationToken);
 
-         await _publishEndpoint.Publish<SaleCreatedEvent>(new SaleCreatedEvent
+        await _publishEndpoint.Publish<SaleCreatedEvent>(new SaleCreatedEvent
         {
             SaleId = sale.Id,
             CreatedAt = sale.SaleDate,
             CustomerId = sale.CustomerId,
             TotalAmount = sale.TotalAmount
-        });    
+        });
 
         return _mapper.Map<CreateSaleCommandResult>(sale);
     }
