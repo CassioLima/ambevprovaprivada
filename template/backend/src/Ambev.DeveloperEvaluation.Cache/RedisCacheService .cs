@@ -15,8 +15,8 @@ namespace Ambev.DeveloperEvaluation.Infrastructure.Cache
 
         public async Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default)
         {
-            var cachedData = await _cache.GetStringAsync(key, cancellationToken);
-            if (string.IsNullOrEmpty(cachedData))
+            var cachedData = await _cache.GetAsync(key, cancellationToken);
+            if (cachedData == null || cachedData.Length == 0)
                 return default;
 
             return JsonSerializer.Deserialize<T>(cachedData);
@@ -24,13 +24,13 @@ namespace Ambev.DeveloperEvaluation.Infrastructure.Cache
 
         public async Task SetAsync<T>(string key, T data, TimeSpan expiration, CancellationToken cancellationToken = default)
         {
-            var serializedData = JsonSerializer.Serialize(data);
+            var serializedData = JsonSerializer.SerializeToUtf8Bytes(data);
             var options = new DistributedCacheEntryOptions
             {
                 AbsoluteExpirationRelativeToNow = expiration
             };
 
-            await _cache.SetStringAsync(key, serializedData, options, cancellationToken);
+            await _cache.SetAsync(key, serializedData, options, cancellationToken);
         }
 
         public async Task RemoveAsync(string key, CancellationToken cancellationToken = default)
