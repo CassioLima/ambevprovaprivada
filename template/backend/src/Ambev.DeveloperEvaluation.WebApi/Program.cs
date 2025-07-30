@@ -16,6 +16,7 @@ using MongoDB.Driver;
 using StackExchange.Redis;
 using Microsoft.Extensions.Caching.Distributed;
 using AutoMapper;
+using Prometheus;
 
 namespace Ambev.DeveloperEvaluation.WebApi;
 
@@ -82,8 +83,6 @@ public class Program
                 });
             });
 
-
-            
             //Redis
             builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
             {
@@ -100,7 +99,6 @@ public class Program
 
 
             var app = builder.Build();
-
 
             // Middleware de validação customizada
             app.UseMiddleware<ValidationExceptionMiddleware>();
@@ -121,11 +119,20 @@ public class Program
 
             }
 
-            app.UseHttpsRedirection();
+            app.UseHttpMetrics();
+            app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseBasicHealthChecks();
-            app.MapControllers();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapMetrics("/metrics");
+                endpoints.MapControllers(); // Moveu para dentro do UseEndpoints
+            });
+
+
+            app.UseHttpsRedirection();
 
             app.Run();
         }
@@ -139,3 +146,6 @@ public class Program
         }
     }
 }
+
+
+
