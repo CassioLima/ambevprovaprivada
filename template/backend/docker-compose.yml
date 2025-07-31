@@ -112,11 +112,9 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./prometheus.yml:/etc/prometheus.yml
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     command:
-      - '--config.file=/etc/prometheus.yml'
-    # networks:
-    #   - elastic-net
+      - '--config.file=/etc/prometheus/prometheus.yml'
 
   grafana:
     image: grafana/grafana:latest
@@ -126,21 +124,17 @@ services:
     volumes:
       - grafana-storage:/var/lib/grafana
     environment:
-      - GF_AUTH_ANONYMOUS_ENABLED=true
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-      - GF_AUTH_DISABLE_LOGIN_FORM=true
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
     depends_on:
       - prometheus
-    # networks:
-    #   - elastic-net
 
   node-exporter:
     image: prom/node-exporter
     container_name: node-exporter
     ports:
       - "9100:9100"
-    # networks:
-    #   - elastic-net
+
 
 networks:
   elastic-net:
