@@ -2,9 +2,9 @@ global:
   scrape_interval: 5s
 
 scrape_configs:
-  - job_name: 'ambev_developer_evaluation_webapi'
+  - job_name: 'ambev.developerevaluation.webapi'
     static_configs:
-      - targets: ['ambev_developer_evaluation_webapi:62796']
+      - targets: ['ambev.developerevaluation.webapi:8080']
   
   - job_name: 'node-exporter'
     static_configs:

@@ -128,9 +128,8 @@ public class Program
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapMetrics("/metrics");
-                endpoints.MapControllers(); // Moveu para dentro do UseEndpoints
+                endpoints.MapControllers(); 
             });
-
 
             app.UseHttpsRedirection();
 
