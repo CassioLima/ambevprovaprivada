@@ -1,4 +1,4 @@
-version: '3.8'
+﻿version: '3.8'
 
 services:
   ambev.developerevaluation.webapi:
@@ -86,24 +86,20 @@ services:
   n8n:
     image: docker.n8n.io/n8nio/n8n
     container_name: n8n
-    ports:
-      - "5678:5678"
     environment:
-      - N8N_BASIC_AUTH_ACTIVE=false
-      - N8N_USER_MANAGEMENT_DISABLED=true
-      - N8N_DIAGNOSTICS_ENABLED=false
-      - N8N_ENCRYPTION_KEY=anyrandomstring
       - N8N_HOST=${SUBDOMAIN}.${DOMAIN_NAME}
       - N8N_PORT=5678
       - N8N_PROTOCOL=https
+      - NODE_ENV=production
       - WEBHOOK_URL=https://${SUBDOMAIN}.${DOMAIN_NAME}/
       - GENERIC_TIMEZONE=${GENERIC_TIMEZONE}
+    ports:
+      - "5678:5678"
     volumes:
-      - ./N8N/data:/home/n8n/.n8n
-    command: "start --tunnel"
+      - ./data:/home/data
+      - n8n_data:/home/node/.n8n
     restart: unless-stopped
-    networks:
-      - elastic-net
+ 
 
   db-init:
     image: postgres:13

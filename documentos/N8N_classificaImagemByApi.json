@@ -1,0 +1,291 @@
+{
+  "name": "WfClassificaImagem",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "6973f110-7794-47e5-a7b4-d9be0347b4bc",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -720,
+        -140
+      ],
+      "id": "bc8f8caf-2631-4d5a-bf8a-ed24b3baf917",
+      "name": "Webhook",
+      "webhookId": "6973f110-7794-47e5-a7b4-d9be0347b4bc"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyDmdroupHCELY1NMIFCeiYJJT3A8HL-IeE",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\":[\n    {\n      \"parts\":[\n        {\n          \"text\": \"classifique a imagem e preencha o resultado em json dessa forma: { \\\"QtdMulher\\\": 0, \\\"QtdHomem\\\": 0, \\\"Pessoas\\\": [ { \\\"Pessoa1\\\": { \\\"Sexo\\\": \\\"Mulher\\\", \\\"Classificação\\\": \\\"Criança\\\" }, \\\"Pessoa2\\\": { \\\"Sexo\\\": \\\"Homem\\\", \\\"Classificação\\\": \\\"Adulto\\\" }, \\\"Pessoa3\\\": { \\\"Sexo\\\": \\\"Mulher\\\", \\\"Classificação\\\": \\\"Adulto\\\" } } ] }\"\n        },\n        {\n          \"inline_data\": {\n            \"mime_type\":\"image/jpeg\",\n            \"data\": \"{{ $json.imageBase64.data }}\"\n          }\n        }\n      ]\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -100,
+        -140
+      ],
+      "id": "46a4bbfb-2d18-4b4b-8f20-81fe845c4db7",
+      "name": "Analisa Imagem"
+    },
+    {
+      "parameters": {
+        "jsCode": "const binaryData = $input.first().binary;\n\nif (!binaryData || !binaryData.imagem || !binaryData.imagem) {\n  throw new Error('Nenhum dado binário encontrado no campo \"imagem\"');\n}\n\nreturn [\n  {\n    json: {\n      imageBase64: binaryData.imagem,\n      imagemBinary: \"data:image/jpeg;base64,\" + binaryData.imagem.data\n    },\n  },\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -360,
+        -140
+      ],
+      "id": "2cc25ce5-364b-46c2-8173-d79de331ce17",
+      "name": "Gera Base64"
+    },
+    {
+      "parameters": {
+        "chatId": "=1503817236",
+        "text": "={{ $json.candidates[0].content.parts[0].text }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        180,
+        -400
+      ],
+      "id": "faa017a7-7347-40ec-9096-1ffcb8abc910",
+      "name": "Enviar Analise Telegran",
+      "webhookId": "7ef9fb20-f797-4ee9-981c-f346b048d3be",
+      "credentials": {
+        "telegramApi": {
+          "id": "rjR2XJR7rufT9I76",
+          "name": "Telegram account 2"
+        }
+      },
+      "disabled": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "try {\n  const text = $input.first().json.candidates[0].content.parts[0].text;\n\n  // Regex para capturar o bloco ```json ... ```\n  const regex = /```json\\s*([\\s\\S]*?)```/;\n  const match = text.match(regex);\n\n  if (!match || !match[1]) {\n    return [\n      {\n        json: {\n          resultado: null,\n          analise: 'Imagem não foi processada'\n        }\n      }\n    ];\n  }\n\n  // Extrai e faz parse do JSON\n  const jsonStr = match[1];\n  const parsed = JSON.parse(jsonStr);\n\n  // Remove o bloco de JSON do texto original para gerar a análise\n  const analise = text.replace(regex, '').trim();\n\n  return [\n    {\n      json: {\n        resultado: parsed,\n        analise: analise\n      }\n    }\n  ];\n\n} catch (error) {\n  throw new Error('❌ Erro ao fazer parse do JSON extraído: ' + error.message);\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -520,
+        220
+      ],
+      "id": "8ad794bf-ce8d-43e2-b30d-1d549d05c72e",
+      "name": "Pega json da mensagem"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "343d58d2-b5a6-4c5b-91bf-96c2099e8032",
+              "leftValue": "={{ $json.analise }}",
+              "rightValue": "\"true\"",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "bfb25d6d-ef2c-4881-80c0-373dbec0bd4d",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -240,
+        220
+      ],
+      "id": "3492c71e-26b1-4055-8d4a-c69f2d0dffc1",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "chatId": "1503817236",
+        "text": "={{ $json.analise }}\n\n{{ JSON.stringify($json.resultado, null, 2) }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        180,
+        40
+      ],
+      "id": "c9c5b9fa-4f2b-4f50-bba0-eb3096b80783",
+      "name": "Notifica Risco Encontrado",
+      "webhookId": "60b8625d-75f8-4b2a-9efe-e9fa18da422b",
+      "credentials": {
+        "telegramApi": {
+          "id": "rjR2XJR7rufT9I76",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const image = $('Gera Base64').first().json.imageBase64;\n\nreturn [\n  {\n    binary: {\n      imagem: {\n        data: image.data,\n        mimeType: image.mimeType,\n        fileName: 'imagem.jpg'\n      }\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        180,
+        220
+      ],
+      "id": "4ee2ac39-9c47-42b4-a6b4-0de954240885",
+      "name": "Gera a Imagem"
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "1503817236",
+        "binaryData": true,
+        "binaryPropertyName": "=imagem",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        440,
+        220
+      ],
+      "id": "a43fa509-831b-4ce2-8ded-0a38b1bab1b9",
+      "name": "Envia Foto da Imagem Enviada",
+      "webhookId": "ff50d240-2730-4b5f-94b7-d89bd33c5b58",
+      "credentials": {
+        "telegramApi": {
+          "id": "rjR2XJR7rufT9I76",
+          "name": "Telegram account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Gera Base64",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analisa Imagem": {
+      "main": [
+        [
+          {
+            "node": "Enviar Analise Telegran",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Pega json da mensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gera Base64": {
+      "main": [
+        [
+          {
+            "node": "Analisa Imagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pega json da mensagem": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Notifica Risco Encontrado",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Gera a Imagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gera a Imagem": {
+      "main": [
+        [
+          {
+            "node": "Envia Foto da Imagem Enviada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "911b941f-6537-4d12-a27f-fb1c75c34683",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "922f97b519df91361e13d188791725e4f9f54245c6bbf73ed964cd3937604733"
+  },
+  "id": "2awDp70echloX0rs",
+  "tags": []
+}

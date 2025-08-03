@@ -1,0 +1,295 @@
+{
+  "name": "ClassificaRiscoByApi",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "6973f110-7794-47e5-a7b4-d9be0347b4bc",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1000,
+        -240
+      ],
+      "id": "39d50710-7bda-46b5-9941-3829ee95bcde",
+      "name": "Webhook",
+      "webhookId": "6973f110-7794-47e5-a7b4-d9be0347b4bc"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyDmdroupHCELY1NMIFCeiYJJT3A8HL-IeE",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\":[\n    {\n      \"parts\":[\n        {\n          \"text\": \"analise essa imagem, se for uma tentariva de assalto retornar em json o text e uma nova chave no nó parts com nome risco com o valor true caso contrário valor false\"\n        },\n        {\n          \"inline_data\": {\n            \"mime_type\":\"image/jpeg\",\n            \"data\": \"{{ $json.imageBase64.data }}\"\n          }\n        }\n      ]\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -380,
+        -240
+      ],
+      "id": "38787567-a451-4b0b-9289-cbc6b1ad70fc",
+      "name": "Analisa Imagem"
+    },
+    {
+      "parameters": {
+        "jsCode": "const binaryData = $input.first().binary;\n\nif (!binaryData || !binaryData.imagem || !binaryData.imagem) {\n  throw new Error('Nenhum dado binário encontrado no campo \"imagem\"');\n}\n\nreturn [\n  {\n    json: {\n      imageBase64: binaryData.imagem,\n      imagemBinary: \"data:image/jpeg;base64,\" + binaryData.imagem.data\n    },\n  },\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -640,
+        -240
+      ],
+      "id": "003dbe34-2fa4-4766-8bb3-0dfaf5a65f38",
+      "name": "Gera Base64"
+    },
+    {
+      "parameters": {
+        "chatId": "=1503817236",
+        "text": "={{ $json.candidates[0].content.parts[0].text }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -100,
+        -500
+      ],
+      "id": "a79a4f15-de27-4304-a6ae-f5e5a2d639ed",
+      "name": "Enviar Analise Telegran",
+      "webhookId": "7ef9fb20-f797-4ee9-981c-f346b048d3be",
+      "credentials": {
+        "telegramApi": {
+          "id": "rjR2XJR7rufT9I76",
+          "name": "Telegram account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "try {\n  const text = $input.first().json.candidates[0].content.parts[0].text;\n\n  // Regex melhorado para extrair apenas o bloco JSON correto (terminando com risco)\n  const regex = /{[\\s\\S]*?\"parts\":\\s*{[\\s\\S]*?\"risco\":\\s*(true|false)[\\s\\S]*?}\\s*}/m;\n  const match = text.match(regex);\n\n  if (!match) {\n        return [\n        {\n          json: {\n            risco: false,\n            text: 'Imagem não foi processada'\n          }\n        }\n      ];\n  }\n\n  const jsonStr = match[0];\n  const parsed = JSON.parse(jsonStr);\n\n  return [\n    {\n      json: {\n        risco: parsed.parts?.risco ?? null,\n        text: parsed.text ?? ''\n      }\n    }\n  ];\n} catch (error) {\n  throw new Error(`Erro ao extrair risco do texto: ${error.message}`);\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -800,
+        120
+      ],
+      "id": "37fb83c9-04a1-449c-a8ed-cdc2bd5ae5d6",
+      "name": "Pega json da mensagem"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "343d58d2-b5a6-4c5b-91bf-96c2099e8032",
+              "leftValue": "={{ $json.risco }}",
+              "rightValue": "\"true\"",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "bfb25d6d-ef2c-4881-80c0-373dbec0bd4d",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -520,
+        120
+      ],
+      "id": "50b801c1-79ea-46f6-b3e1-03a5417b99f2",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "chatId": "1503817236",
+        "text": "={{ $('Pega json da mensagem').item.json.text }}\n",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -100,
+        -60
+      ],
+      "id": "2486527f-a93d-4467-81fd-db091621c0be",
+      "name": "Notifica Risco Encontrado",
+      "webhookId": "60b8625d-75f8-4b2a-9efe-e9fa18da422b",
+      "credentials": {
+        "telegramApi": {
+          "id": "rjR2XJR7rufT9I76",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const image = $('Gera Base64').first().json.imageBase64;\n\nreturn [\n  {\n    binary: {\n      imagem: {\n        data: image.data,\n        mimeType: image.mimeType,\n        fileName: 'imagem.jpg'\n      }\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -100,
+        120
+      ],
+      "id": "b47a3b77-8cc2-4298-ab85-5c253f189a6f",
+      "name": "Gera a Imagem"
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "1503817236",
+        "binaryData": true,
+        "binaryPropertyName": "=imagem",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        140,
+        120
+      ],
+      "id": "b4c3e16d-3e3b-4070-920b-b22a598122fb",
+      "name": "Envia Foto do risco encontrado",
+      "webhookId": "ff50d240-2730-4b5f-94b7-d89bd33c5b58",
+      "credentials": {
+        "telegramApi": {
+          "id": "rjR2XJR7rufT9I76",
+          "name": "Telegram account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Gera Base64",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gera Base64": {
+      "main": [
+        [
+          {
+            "node": "Analisa Imagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analisa Imagem": {
+      "main": [
+        [
+          {
+            "node": "Enviar Analise Telegran",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Pega json da mensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pega json da mensagem": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Notifica Risco Encontrado",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Gera a Imagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notifica Risco Encontrado": {
+      "main": [
+        []
+      ]
+    },
+    "Gera a Imagem": {
+      "main": [
+        [
+          {
+            "node": "Envia Foto do risco encontrado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "6293aefb-28ff-473f-8b22-cb012486bcc3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "922f97b519df91361e13d188791725e4f9f54245c6bbf73ed964cd3937604733"
+  },
+  "id": "GlEoikKFTBQIaQgS",
+  "tags": []
+}
