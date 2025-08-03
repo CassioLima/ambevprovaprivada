@@ -89,11 +89,10 @@ services:
     ports:
       - "5678:5678"
     environment:
-      - N8N_SECURE_COOKIE=false
       - N8N_BASIC_AUTH_ACTIVE=false
       - N8N_USER_MANAGEMENT_DISABLED=true
-      - N8N_AUTH_EXCLUDE_ENDPOINTS=rest,webhook- 
       - N8N_DIAGNOSTICS_ENABLED=false
+      - N8N_ENCRYPTION_KEY=anyrandomstring
       - N8N_HOST=${SUBDOMAIN}.${DOMAIN_NAME}
       - N8N_PORT=5678
       - N8N_PROTOCOL=https
@@ -101,7 +100,6 @@ services:
       - GENERIC_TIMEZONE=${GENERIC_TIMEZONE}
     volumes:
       - ./N8N/data:/home/n8n/.n8n
-      - n8n_data:/home/n8n/node/.n8n
     command: "start --tunnel"
     restart: unless-stopped
     networks:
@@ -139,8 +137,9 @@ services:
     volumes:
       - grafana-storage:/var/lib/grafana
     environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
     depends_on:
       - prometheus
     networks:
